@@ -1,0 +1,137 @@
+import numpy as np # linear algebra
+import pandas as pd # data processing, CSV file I/O (e.g. pd.read_csv)
+import matplotlib.pyplot as plt
+import seaborn as sns
+import warnings
+warnings.filterwarnings('ignore')
+
+imdb_df  = pd.read_csv('IMDB_Movies_Dataset.csv')#read 
+imdb_df.head()
+
+imdb_df.info()
+
+#drop null values rows
+
+imdb_df.dropna(axis= 0, inplace = True)
+
+imdb_df.Revenue = imdb_df.Revenue.apply(lambda x : str(x).replace(',',''))#replacing comma in Revenue column
+
+#Bar graph showing no. of count of IMDB_Rating
+plt.figure(figsize = (10,10))
+sns.displot(data = imdb_df, x = 'IMDB_Rating')
+
+imdb_df.Revenue = imdb_df.Revenue.astype('float64')
+
+imdb_df.Revenue.dtypes
+
+data = imdb_df.sort_values('Year_Of_Release',ascending=True) #show Year of release in ascending order
+data.head(5)
+
+#Genre VS Revenue
+plt.figure(figsize = (22,6))
+plt.xlabel('Genre',fontsize=20)
+plt.ylabel('Revenue',fontsize=20)
+plt.title("Genre VS Revenue", fontsize=25)
+sns.barplot(x = 'Genre', y = 'Revenue', data = imdb_df.head(10))
+
+imdb_df.describe()
+
+imdb_df.Year_Of_Release.dtype
+
+#Movie name vs Revenue(Director specific)
+plt.figure(figsize=(25,5))
+sns.barplot(x = 'Movie_Name', y = 'Revenue', data = imdb_df[imdb_df.Director == 'Christopher Nolan'])
+
+condition = data['Year_Of_Release'].astype(int) > 2000 # Check year above 2000
+moviecount=(data[condition][['Year_Of_Release','New_ID']].groupby('Year_Of_Release').count())#count number of movies each year
+moviecount
+
+# Line graph to analyze the number of movies from the year 2001-2019
+(moviecount
+ .rolling(5).mean().rename(columns={"New_ID":"count"})
+ .plot(figsize=(15,4),
+       title="Count of top IMDB Movies - by year of release",color='brown',xlabel='Year',ylabel='Count')
+)
+
+#Director whose movies have earned more than 500 M revenue
+plt.figure(figsize=(25,5))
+sns.barplot(x = 'Director', y = 'Revenue', data = imdb_df[imdb_df.Revenue > 500000000])
+
+#Scatterplot to find relatioship between ratings and votes
+plt.figure(figsize = (20,5))
+plt.scatter(imdb_df.IMDB_Rating,imdb_df.Votes/1000,marker='*',s=100,alpha=0.6,color='midnightblue')
+plt.xlabel('Rating')
+plt.ylabel('Votes in thousand')
+plt.xlim(7.5,10)
+plt.title('Votes v/s Ratings')
+
+#Director whose movies have earned more than 500 M revenue with specific certification
+plt.figure(figsize=(25,5))
+sns.barplot(x = 'Director', y = 'Revenue', data = imdb_df[imdb_df.Revenue > 500000000],hue = 'Certification')
+
+#Correlation
+sns.heatmap(imdb_df.corr(),annot = True)
+
+pkmn_type_colors = ['#78C850',  # Grass
+                    '#F08030',  # Fire
+                    '#6890F0',  # Water
+                    '#A8B820',  # Bug
+                    '#A8A878',  # Normal
+                    '#A040A0',  # Poison
+                    '#F8D030',  # Electric
+                    '#E0C068',  # Ground
+                    '#EE99AC',  # Fairy
+                    '#C03028',  # Fighting
+                    '#F85888',  # Psychic
+                    '#B8A038',  # Rock
+                    '#705898',  # Ghost
+                    '#98D8D8',  # Ice
+                    '#7038F8',  # Dragon
+                   ]
+
+# Violin plot with Pokemon color palette
+sns.violinplot(x='Certification', y='Meta_score', data=imdb_df, 
+               palette=pkmn_type_colors) # Set color palette
+
+#Movie VS Revenue 
+plt.figure(figsize = (30,6))
+plt.xlabel('Movie_Name',fontsize=20)
+plt.ylabel('Revenue',fontsize=20)
+plt.title("Movie_Name VS Revenue", fontsize=25)
+sns.barplot(x = 'Movie_Name', y = 'Revenue', data = imdb_df.head(10))
+
+#Year VS Revenue 
+plt.figure(figsize = (22,6))
+plt.xlabel('Year_Of_Release',fontsize=20)
+plt.ylabel('Revenue',fontsize=20)
+plt.title("Year_Of_Release VS Revenue", fontsize=25)
+sns.boxplot(x = 'Year_Of_Release', y = 'Revenue', data = imdb_df.sort_values('Year_Of_Release',ascending=False).head(200))
+
+#Certification VS Revenue 
+plt.figure(figsize=(25,5))
+plt.xlabel('Certification',fontsize=20)
+plt.ylabel('Revenue',fontsize=20)
+plt.title("Certification VS Revenue", fontsize=25)
+sns.barplot(x = 'Certification', y = 'Revenue', data = imdb_df)  # UA cerification movies have significant gross revenue
+
+# Stripplot plot with Pokemon color palette
+sns.stripplot(x='Certification', y='Votes', data=imdb_df, 
+              palette=pkmn_type_colors)
+
+#Top 10 directors with highest average IMDB score
+imdb_df.groupby('Director').IMDB_Rating.mean().sort_values(ascending=False).head(10)
+
+condition = data['Year_Of_Release'].astype(int) > 2000 # Check year above 2000
+moviecount=(data[condition][['Year_Of_Release','New_ID']].groupby('Year_Of_Release').count())#count number of movies each year
+moviecount
+
+# Distribution Plot (a.k.a. Histogram)
+sns.distplot(imdb_df.Meta_score)
+
+#groupby the data by genre type
+pieplot=imdb_df.groupby("Certification")["IMDB_Rating"].count()
+pieplot
+
+# Density Plot
+y=sns.kdeplot(imdb_df.IMDB_Rating, imdb_df.Meta_score, palette=pkmn_type_colors)
+
